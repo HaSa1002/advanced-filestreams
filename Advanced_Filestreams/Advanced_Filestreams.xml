@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        "Advanced_Filestreams"
+    </assembly>
+    <members>
+        <member name="M:af.Filestream.is_open">
+            <summary>Opens a file</summary>
+            <returns>0: not open | 1: open</returns>
+        </member>
+        <member name="M:af.Filestream.#ctor(std.basic_string&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte,std.char_traits{System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte},std.allocator&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte&gt;&gt;!System.Runtime.CompilerServices.IsConst*!System.Runtime.CompilerServices.IsImplicitlyDereferenced)">
+            <summary>Opens a file</summary>
+            <exception cref="F:CouldntOpenFile">File couldn't be opend</exception>
+            <param name="path">Path to file</param>
+        </member>
+        <member name="M:af.Filestream.#ctor">
+            <summary>Suprisingly it does nothing</summary>
+        </member>
+        <member name="T:af.Filestream">
+            <summary>The basic class in this framework. All operations are done on top of this class</summary>
+        </member>
+    </members>
+</doc>
