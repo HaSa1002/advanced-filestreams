@@ -40,12 +40,18 @@ namespace af {
 		///<param name="destination">Pushes content into<param>
 		void read(std::string& destination);
 
-		///<summary>Reads a line 
+		///<summary>Reads a line</summaray>
+		///<param name="destination">Pushes content into<param>
 		void getLine(std::string& destination);
+
+		///<summary>Appends content to the file</summary>
+		///<param name="to_append">what to append<param>
 		void append(const std::string& to_append);
+		
+		///<summary>Sets if exceptions should be thrown by the libary or not</summary>
 		void setExceptionMode(bool mode);
 		
-	private:
+	protected:
 		bool exception_mode = 0;
 		std::fstream file;
 	};

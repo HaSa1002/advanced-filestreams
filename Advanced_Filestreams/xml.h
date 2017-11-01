@@ -3,7 +3,8 @@
 #define AF_XML
 #include "general.h"
 namespace af {
-	static class XML {
+	class XML : TextFilestream {
+		
 		void parse();
 		void read();
 
