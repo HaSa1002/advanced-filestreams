@@ -2,41 +2,81 @@
 #include "general.h"
 
 namespace af {
-	Filestream::Filestream() {
+	TextFilestream::TextFilestream() {
 
 	}
 	
-	Filestream::Filestream(const std::string & path)
+	TextFilestream::TextFilestream(const std::string & path)
 	{
-		if (!this->open(path)) {
-			throw(Exception::CouldntOpenFile);
+		try {
+			if (!this->open(path)) {
+				throw(Exception::CouldntOpenFile);
+			}
+		}
+		catch (Exception) {
+			throw;
 		}
 	}
 	
-	bool Filestream::is_open()
+	bool TextFilestream::is_open()
 	{
-		return false;
+		if (!file.is_open()) {
+			if (exception_mode) {
+				throw(Exception::CouldntOpenFile);
+				return false;
+			}
+			else
+				return false;
+		} //is_open()
+		return true;
 	}
-	bool Filestream::open(const std::string & path)
+
+	bool TextFilestream::open(const std::string & path)
 	{
-		return false;
+		file.open(path, std::ios::in | std::ios::out);
+		if (exception_mode) {
+			try {
+				!this->is_open();
+				return true;
+			}
+			catch (Exception) {
+				throw;
+				return false;
+			}
+		}
+		else
+			return this->is_open();
 	}
-	void Filestream::close()
+
+	void TextFilestream::close()
 	{
+		bool mode = exception_mode;
+		exception_mode = 0;
+		if (this->is_open())
+			file.close();
+		exception_mode = mode;
 	}
-	void Filestream::write(const std::string & to_write)
+	void TextFilestream::write(const std::string & to_write)
 	{
+		file << to_write;
 	}
-	void Filestream::read(std::string & destination)
+	void TextFilestream::read(std::string & destination)
 	{
+		file >> destination;
 	}
-	void Filestream::find(const std::string & to_find)
+	void TextFilestream::getLine(std::string & destination)
 	{
+		std::getline(file, destination);
 	}
-	void Filestream::getLine(std::string & destination)
+	void TextFilestream::append(const std::string & to_append)
 	{
+		std::string buffer;
+		this->read(buffer);
+		buffer += to_append;
+		this->write(buffer);
 	}
-	void Filestream::append(const std::string & to_append)
+	void TextFilestream::setExceptionMode(bool mode)
 	{
+		exception_mode = mode;
 	}
 }
