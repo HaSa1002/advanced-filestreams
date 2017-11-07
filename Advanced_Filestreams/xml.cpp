@@ -4,8 +4,7 @@
 
 namespace af {
 	void XML::parse() {
-		Filestream filestream("");
-		filestream.is_open();
+		
 		
 	}
 }
