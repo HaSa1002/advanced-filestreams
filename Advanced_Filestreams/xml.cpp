@@ -3,8 +3,72 @@
 
 
 namespace af {
+	
+
+
+	void XML::open(std::string path) {
+		file.open(path, std::ios::in | std::ios::out);
+		if (!file.is_open())
+			throw(af::Exception::CouldntOpenFile);
+	}
+
+	void XML::close() {
+		if (file.is_open())
+			file.close();
+	}
+
+	XML::XML(std::string path) {
+		try {
+			open(path);
+		}
+		catch (af::Exception) {
+			throw;
+		}
+	}
+	XML::XML() {
+	}
+
+	XML::~XML() {
+		close();
+	}
+
+	void XML::read() {
+		af::read(file, buffer);
+
+	}
+
+	//Entfernt führende Leerzeichen und schreibt in einen neuen String
+	void eraseSpaces(std::string& line, std::string& buffer) {
+		if (line.find_first_of("<") != std::string::npos) {
+			buffer = line.substr(line.find_first_of("<"));
+		}
+	}
+	//Bekommt den Content zwischen den Keys
+	auto getContent(std::string& buffer)->std::string {
+		int last = buffer.find_last_of("<");
+		int first = buffer.find_first_of(">") + 1;
+		int count = last - first;
+		return buffer.substr(first, count);
+	}
+	auto getKey(std::string& buffer)->std::string {
+		int end = buffer.find_first_of(">")- 1;
+		return buffer.substr(1, end);
+	}
+
 	void XML::parse() {
-		
+		std::string line;
+		while (std::getline(file, line)) {
+			//Erase spaces
+			if(line.find_first_not_of(" ") != std::string::npos)
+				line = line.substr(line.find_first_not_of(" "));
+			//Definitions in the XML File. The reading of this will be skipped
+			if (line.find("<!") == 0)
+				continue;
+			if (line.find_first_of("<") == 0) {
+				int end = buffer.find_first_of(">");
+				//TBC
+			}
+		}
 		
 	}
 }
@@ -14,111 +78,17 @@ namespace af {
 
 
 /*
-namespace pse {
-
-	//Leerer Standardkonstruktor
-	XMLHandler::XMLHandler() {
-
-	}
-	//Öffnen einer Datei
-	XMLHandler::XMLHandler(const std::string &file) {
-		try {
-			openFile(file);
-		}
-		catch (pse::ReturnCode) {
-			throw;
-		}
-
-	}
-	//Laden eines Savegames
-	XMLHandler::XMLHandler(pse::Savegame::Structure& destination, const std::string& file) {
-		try {
-			openFile(file);
-		}
-		catch (pse::ReturnCode) {
-			throw;
-		}
-		extract(destination);
-	}
-	//Laden der Savegameliste
-	XMLHandler::XMLHandler(std::vector<pse::Savegame::SavegameList>& destination, const std::string& file) {
-		try {
-			openFile(file);
-		}
-		catch (pse::ReturnCode) {
-			throw;
-		}
-		extract(destination);
-	}
-	//Laden der Localisation
-	XMLHandler::XMLHandler(pse::Localize::Structure& destination, const std::string& file) {
-		try {
-			openFile(file);
-		}
-		catch (pse::ReturnCode) {
-			throw;
-		}
-		extract(destination);
-	}
-	//Destruktor
-	XMLHandler::~XMLHandler() {
-		try {
-			this->isOpen();
-
-		}
-		catch (pse::ReturnCode) {
-			return;
-		}
-		this->closeFile();
-
-	}
-
-	//Extrahiert Savegame
-	auto XMLHandler::extract(pse::Savegame::Structure& destination)->void {
-		savegame(destination);
-	}
-	//Extrahiert Savegameliste
-	auto XMLHandler::extract(std::vector<pse::Savegame::SavegameList>& destination)->void {
-		savegames(destination);
-	}
-	//Extrahiert Localisation
-	auto XMLHandler::extract(pse::Localize::Structure& destination)->void {
-		localisation(destination);
-	}
-
-	//Öffnet die Datei
-	void XMLHandler::openFile(const std::string& file) {
-		opendFile.open(file, std::ios::in | std::ios::out);
-		try {
-			this->isOpen();
-		}
-		catch (pse::ReturnCode) {
-			throw;
-		}
-	}
-	//Schließt die Datei
-	void XMLHandler::closeFile() {
-		opendFile.close();
-	}
-	//Überprüft ob offen
-	void XMLHandler::isOpen() {
-		if (!opendFile.is_open()) {
-			throw  FailFileStream;
-		}
-	}
 
 	//Extrahiert ein Savegame
 	auto XMLHandler::savegame(pse::Savegame::Structure& destination)->void {
 		int found = 0;
 		int currentPosition = 0;
 		int inventory = 0;
-		int run = 0; //Eigentlich nicht gebraucht
 		Savegame::foundPart part;
 		std::string line;
 		std::string buffer;
 
 		while (std::getline(opendFile, line)) {
-			++run;
 			eraseSpaces(line, buffer);
 			//Bei Leerzeile:
 			if (buffer == "") {
@@ -230,11 +200,6 @@ namespace pse {
 				continue;
 			}
 		}
-
-	}
-	//Extrahiert die Localisation
-	auto XMLHandler::localisation(pse::Localize::Structure& destination)->void {
-
 	}
 	//Extrahiert die Savegameliste
 	auto XMLHandler::savegames(std::vector<pse::Savegame::SavegameList>& destination)->void {
@@ -265,21 +230,6 @@ namespace pse {
 
 		}
 	}
-
-	//Entfernt führende Leerzeichen und schreibt in einen neuen String
-	void XMLHandler::eraseSpaces(std::string& line, std::string& buffer) {
-		if (line.find_first_of("<") != std::string::npos) {
-			buffer = line.substr(line.find_first_of("<"));
-		}
-	}
-	//Bekommt den Content zwischen den Keys
-	auto XMLHandler::getContent(std::string& buffer)->std::string {
-		int last = buffer.find_last_of("<");
-		int first = buffer.find_first_of(">") + 1;
-		int count = last - first;
-		return buffer.substr(first, count);
-	}
-
 	//Erstellt ein neues Savegame
 	void XMLHandler::newSavegame(const std::string& file) {
 		this->openFile(file);

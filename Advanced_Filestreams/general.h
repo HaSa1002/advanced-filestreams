@@ -7,10 +7,11 @@
 namespace af {
 	enum Exception {
 		CouldntOpenFile,
+		WrongXmlFormat,
 
 	};
 		///<summary>Writes into the file</summary>
-		///<remarks>You will allways overwrite the content. If you don't want that, you need to use append()</remarks>
+		///<remarks>You allways overwrite the content. If you don't want that, you need to use append()</remarks>
 		///<param name="to_write">String to write into</param>
 		static void write(std::fstream& file, const std::string& to_write);
 
