@@ -30,7 +30,7 @@ namespace af {
 		void close();
 		void read();
 		void getContent(const std::string& key);
-		void getStructure();
+		auto getFileStruct() -> Structure;
 		auto getFile()->std::fstream;
 
 	private:

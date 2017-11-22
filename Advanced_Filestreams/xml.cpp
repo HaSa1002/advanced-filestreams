@@ -1,6 +1,6 @@
 #pragma once
 #include "xml.h"
-
+#include "general.h"
 
 namespace af {
 	
@@ -55,23 +55,45 @@ namespace af {
 		return buffer.substr(1, end);
 	}
 
-	void XML::parse() {
+	//
+	void XML::read() {
 		std::string line;
 		while (std::getline(file, line)) {
-			//Erase spaces
-			if(line.find_first_not_of(" ") != std::string::npos)
+			//Erase spaces and skipt line if empty
+			if (line.find_first_not_of(" ") != std::string::npos)
 				line = line.substr(line.find_first_not_of(" "));
+			else
+				continue;
 			//Definitions in the XML File. The reading of this will be skipped
 			if (line.find("<!") == 0)
 				continue;
+			//Checking for key opening tag
 			if (line.find_first_of("<") == 0) {
-				int end = buffer.find_first_of(">");
-				//TBC
-			}
-		}
-		
-	}
-}
+				int end = buffer.find_first_of(" ");
+				if (end == std::string::npos)
+					parsedFile.key = getKey(buffer);
+				else {
+					parsedFile.key = buffer.substr(1, end - 1);
+					buffer = buffer.substr(end);
+				}
+				bool closingDelim = false;
+				while (!closingDelim) {
+					Attribute attribute;
+					attribute.name = buffer.substr(0, buffer.find_first_of("=") - 1);
+					attribute.content = buffer.substr(buffer.find_first_of("=") + 1, buffer.find_first_of("\"", buffer.find_first_of("=")));
+					parsedFile.attributes.push_back(attribute);
+					end = buffer.find_first_of(" ");
+					if (end == std::string::npos)
+						closingDelim = 1;
+					else
+						buffer = buffer.substr(end);
+				} //WHILE !closingTag
+				continue;
+			} //IF find(<)
+
+		} //WHILE getline
+	} //PARSE
+} //AF
 
 
 
