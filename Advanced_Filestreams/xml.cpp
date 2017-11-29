@@ -2,8 +2,9 @@
 #include "xml.h"
 #include "general.h"
 
+
 namespace af {
-	
+
 
 
 	void XML::open(std::string path) {
@@ -32,16 +33,17 @@ namespace af {
 		close();
 	}
 
-	void XML::read() {
-		af::read(file, buffer);
-
-	}
-
 	//Entfernt führende Leerzeichen und schreibt in einen neuen String
-	void eraseSpaces(std::string& line, std::string& buffer) {
-		if (line.find_first_of("<") != std::string::npos) {
-			buffer = line.substr(line.find_first_of("<"));
+	bool eraseSpaces(std::string& line, std::string& buffer) {
+		if (!line.empty()) {
+			if (line.find_first_not_of(" ") != std::string::npos) {
+				buffer = line.substr(line.find_first_not_of(" "));
+				return 0;
+			}	
+			else
+				return 1;
 		}
+		throw(EmptyLine);
 	}
 	//Bekommt den Content zwischen den Keys
 	auto getContent(std::string& buffer)->std::string {
@@ -50,49 +52,192 @@ namespace af {
 		int count = last - first;
 		return buffer.substr(first, count);
 	}
-	auto getKey(std::string& buffer)->std::string {
-		int end = buffer.find_first_of(">")- 1;
-		return buffer.substr(1, end);
+	void XML::getKey() {
+		int end = buffer.find_first_of(" ");
+		if (end == std::string::npos) {
+			end = buffer.find_first_of(">") - 1;
+			parsedFile.key = buffer.substr(1, end);
+		}
+		else {
+			parsedFile.key = buffer.substr(1, end - 1);
+			buffer = buffer.substr(end + 1);
+		}
 	}
 
 	//
-	void XML::read() {
+	void XML::read(int depth) {
 		std::string line;
+		depth; //Tiefe wie tief das blöde Tag liegt
+		Structure tempStruct;
 		while (std::getline(file, line)) {
-			//Erase spaces and skipt line if empty
-			if (line.find_first_not_of(" ") != std::string::npos)
-				buffer = line.substr(line.find_first_not_of(" "));
-			else
+			if (eraseSpaces(line, buffer))
 				continue;
 			//Definitions in the XML File. The reading of this will be skipped
 			if (buffer.find("<!") == 0)
 				continue;
 			//Checking for key opening tag
 			if (buffer.find_first_of("<") == 0) {
-				int end = buffer.find_first_of(" ");
-				if (end == std::string::npos)
-					parsedFile.key = getKey(buffer);
-				else {
-					parsedFile.key = buffer.substr(1, end - 1);
-					buffer = buffer.substr(end + 1);
+				getKey();
+				if (buffer.find_first_of(" ") == std::string::npos || buffer.find_first_of('>') < buffer.find_first_of(" ")) {
+					//Schlussklammer gefunden
+					bool closingDelim = false;
+					//Reading of Attributes
+					while (!closingDelim) {
+						Attribute attribute;
+						attribute.name = buffer.substr(0, buffer.find_first_of("=") - 1);
+						attribute.content = buffer.substr(buffer.find_first_of("=") + 1, buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - 1);
+						parsedFile.attributes.push_back(attribute);
+						unsigned int end = buffer.find_first_of(" ");
+						if (end == std::string::npos || buffer.find_first_of('>') < end) {
+							if (int temp = buffer.find_first_of('>') + 1 != buffer.size() - 1)
+								buffer = buffer.substr(temp);
+							else
+								buffer.clear();
+							closingDelim = 1;
+						}
+						else
+							buffer = buffer.substr(end + 1);
+
+					} //WHILE !closingTag
+				} //IF (attributes)
+				if (!buffer.empty()) {
+					if (buffer.find("</") != std::string::npos) {
+
+					}
 				}
-				bool closingDelim = false;
-				while (!closingDelim) {
-					Attribute attribute;
-					attribute.name = buffer.substr(0, buffer.find_first_of("=") - 1);
-					attribute.content = buffer.substr(buffer.find_first_of("=") + 1, buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - 1);
-					parsedFile.attributes.push_back(attribute);
-					end = buffer.find_first_of(" ");
-					if (end == std::string::npos)
-						closingDelim = 1;
-					else
-						buffer = buffer.substr(end + 1);
-				} //WHILE !closingTag
 				continue;
 			} //IF find(<)
 
 		} //WHILE getline
 	} //READ
+
+	auto XML::read()->Structure {
+		bool opendTag = false;
+		Structure current;
+		std::streampos streampos = 0;
+		while (std::getline(file, buffer)) {
+			//Check if buffer is empty, has XML Definitions
+			try {
+				eraseSpaces(buffer, buffer);
+			}
+			catch (af::Exception) {
+				continue;
+			}
+			if (buffer.find("<!") == 0)
+				continue;
+			//Checks for Endingtag
+			unsigned int close = buffer.find("</");
+			if ( close == 0) {
+				close = buffer.find('>');
+				if (close != std::string::npos) {
+					if (tagList.at(tagList.size() - 1) == buffer.substr(2, close - 2)) {
+						tagList.pop_back();
+						buffer.clear();
+						return current;
+					}
+					else
+						throw(af::Exception::FoundUnexpectedEndingTag);
+				}
+			}
+			if (buffer.find_first_of('<') == 0) {
+				if (opendTag) {
+					file.seekg(streampos);
+					current.childs.push_back(this->read());
+				}
+				else {
+					opendTag = true;
+					{ //gets the Key
+						int end = buffer.find_first_of(" ");
+						if (end == std::string::npos) {
+							end = buffer.find_first_of(">") - 1;
+							current.key = buffer.substr(1, end);
+							tagList.push_back(current.key);
+							buffer = buffer.substr(end + 2);
+						}
+						else {
+							current.key = buffer.substr(1, end - 1);
+							tagList.push_back(current.key);
+							buffer = buffer.substr(end + 1);
+						}
+						
+					}
+					//Schlussklammer gefunden
+					bool closingDelim = false;
+					//Reading of Attributes
+					unsigned int end = buffer.find_first_of(" ");
+					if (end != std::string::npos && buffer.find_first_of('>') > end) {
+						while (!closingDelim) {
+							Attribute attribute;
+							//Getting Attributes
+							attribute.name = buffer.substr(0, buffer.find_first_of("="));
+							int start = buffer.find_first_of("=") + 2;
+							int ending = buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - start;
+							attribute.content = buffer.substr(start, ending);
+							current.attributes.push_back(attribute);
+							//Checking if there are any attributes left
+							unsigned int end = buffer.find_first_of(" ");
+							if (end == std::string::npos || buffer.find_first_of('>') < end) {
+								//No attributes left
+								//Checking if there is anything behind the closing delimiter
+								int size = buffer.size() - 1;
+								int temp = buffer.find_first_of('>');
+								if (temp != size)
+									//Something is behind
+									buffer = buffer.substr(temp);
+								else
+									//Nothing is behind
+									buffer.clear();
+								//End the while
+								closingDelim = 1;
+							}
+							else
+								//Attributes left
+								buffer = buffer.substr(end + 1);
+						} //WHILE !closingTag
+					} //IF attributes
+					  //Checking if there is anything behind the closing delimiter
+					/*int size = buffer.size() - 1;
+					int temp = buffer.find_first_of('>');
+					if (temp != size)
+						//Something is behind
+						buffer = buffer.substr(temp);
+					else
+						//Nothing is behind
+						buffer.clear();*/
+				} //ELSE opendTag
+			} //IF <
+			if (!buffer.empty()) {
+				unsigned int close = buffer.find("</");
+				if (close != 0) {
+					//Content bekommen
+					current.content = buffer.substr(0, close);
+					if (close == std::string::npos)
+						buffer.clear();
+					else
+						buffer = buffer.substr(close);
+					close = buffer.find("</");
+				}
+				
+				if (close == 0) {
+					close = buffer.find('>');
+					if (close != std::string::npos) {
+						if (tagList.at(tagList.size() - 1) == buffer.substr(2, close - 2)) {
+							tagList.pop_back();
+							buffer.clear();
+							return current;
+						}
+						else
+							throw(af::Exception::FoundUnexpectedEndingTag);
+					} // IF close
+				} //IF close
+			} //IF empty
+			streampos = file.tellg();
+		} //while
+		throw(af::Exception::FoundUnexpectedEndOfFile);
+	} //read
+
+
+
 } //AF
 
 

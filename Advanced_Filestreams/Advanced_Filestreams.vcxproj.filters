@@ -29,6 +29,9 @@
     <ClCompile Include="xml.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="testing.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="Advanced_Filestreams.xml">

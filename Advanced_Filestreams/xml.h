@@ -25,10 +25,11 @@ namespace af {
 		XML();
 		~XML();
 
-		void parse();
 		void open(std::string path);
 		void close();
-		void read();
+		void getKey();
+		void read(int depth);
+		auto read()->Structure;
 		void getContent(const std::string& key);
 		auto getFileStruct() -> Structure;
 		auto getFile()->std::fstream;
@@ -36,6 +37,7 @@ namespace af {
 	private:
 		std::fstream file;
 		af::XML::Structure parsedFile;
+		std::vector<std::string> tagList;
 		std::string buffer;
 		int useMode = 0;
 		int depth = 0;

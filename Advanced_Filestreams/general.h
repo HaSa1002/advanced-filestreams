@@ -8,7 +8,9 @@ namespace af {
 	enum Exception {
 		CouldntOpenFile,
 		WrongXmlFormat,
-
+		FoundUnexpectedEndOfFile,
+		FoundUnexpectedEndingTag,
+		EmptyLine
 	};
 		///<summary>Writes into the file</summary>
 		///<remarks>You allways overwrite the content. If you don't want that, you need to use append()</remarks>
