@@ -36,80 +36,16 @@ namespace af {
 	//Entfernt führende Leerzeichen und schreibt in einen neuen String
 	bool eraseSpaces(std::string& line, std::string& buffer) {
 		if (!line.empty()) {
+			if (line.find_first_not_of('\t') != std::string::npos) {
+				buffer = line.substr(line.find_first_not_of("\t"));
+			}
 			if (line.find_first_not_of(" ") != std::string::npos) {
 				buffer = line.substr(line.find_first_not_of(" "));
-				return 0;
 			}	
-			else
-				return 1;
+			return 0;
 		}
 		throw(EmptyLine);
 	}
-	//Bekommt den Content zwischen den Keys
-	auto getContent(std::string& buffer)->std::string {
-		int last = buffer.find_last_of("<");
-		int first = buffer.find_first_of(">") + 1;
-		int count = last - first;
-		return buffer.substr(first, count);
-	}
-	void XML::getKey() {
-		int end = buffer.find_first_of(" ");
-		if (end == std::string::npos) {
-			end = buffer.find_first_of(">") - 1;
-			parsedFile.key = buffer.substr(1, end);
-		}
-		else {
-			parsedFile.key = buffer.substr(1, end - 1);
-			buffer = buffer.substr(end + 1);
-		}
-	}
-
-	//
-	void XML::read(int depth) {
-		std::string line;
-		depth; //Tiefe wie tief das blöde Tag liegt
-		Structure tempStruct;
-		while (std::getline(file, line)) {
-			if (eraseSpaces(line, buffer))
-				continue;
-			//Definitions in the XML File. The reading of this will be skipped
-			if (buffer.find("<!") == 0)
-				continue;
-			//Checking for key opening tag
-			if (buffer.find_first_of("<") == 0) {
-				getKey();
-				if (buffer.find_first_of(" ") == std::string::npos || buffer.find_first_of('>') < buffer.find_first_of(" ")) {
-					//Schlussklammer gefunden
-					bool closingDelim = false;
-					//Reading of Attributes
-					while (!closingDelim) {
-						Attribute attribute;
-						attribute.name = buffer.substr(0, buffer.find_first_of("=") - 1);
-						attribute.content = buffer.substr(buffer.find_first_of("=") + 1, buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - 1);
-						parsedFile.attributes.push_back(attribute);
-						unsigned int end = buffer.find_first_of(" ");
-						if (end == std::string::npos || buffer.find_first_of('>') < end) {
-							if (int temp = buffer.find_first_of('>') + 1 != buffer.size() - 1)
-								buffer = buffer.substr(temp);
-							else
-								buffer.clear();
-							closingDelim = 1;
-						}
-						else
-							buffer = buffer.substr(end + 1);
-
-					} //WHILE !closingTag
-				} //IF (attributes)
-				if (!buffer.empty()) {
-					if (buffer.find("</") != std::string::npos) {
-
-					}
-				}
-				continue;
-			} //IF find(<)
-
-		} //WHILE getline
-	} //READ
 
 	auto XML::read()->Structure {
 		bool opendTag = false;
@@ -124,6 +60,8 @@ namespace af {
 				continue;
 			}
 			if (buffer.find("<!") == 0)
+				continue;
+			if (buffer.find("<?") == 0)
 				continue;
 			//Checks for Endingtag
 			unsigned int close = buffer.find("</");
@@ -146,13 +84,16 @@ namespace af {
 				}
 				else {
 					opendTag = true;
+					//Schlussklammer gefunden
+					bool closingDelim = false;
 					{ //gets the Key
-						int end = buffer.find_first_of(" ");
-						if (end == std::string::npos) {
+						unsigned int end = buffer.find_first_of(" ");
+						if (end == std::string::npos || end > buffer.find_first_of(">")) {
 							end = buffer.find_first_of(">") - 1;
 							current.key = buffer.substr(1, end);
 							tagList.push_back(current.key);
 							buffer = buffer.substr(end + 2);
+							closingDelim = true;
 						}
 						else {
 							current.key = buffer.substr(1, end - 1);
@@ -161,11 +102,11 @@ namespace af {
 						}
 						
 					}
-					//Schlussklammer gefunden
-					bool closingDelim = false;
+					
+					
 					//Reading of Attributes
-					unsigned int end = buffer.find_first_of(" ");
-					if (end != std::string::npos && buffer.find_first_of('>') > end) {
+					unsigned int end = buffer.find_first_of('>');
+					if (end != std::string::npos || !closingDelim) {
 						while (!closingDelim) {
 							Attribute attribute;
 							//Getting Attributes
@@ -183,7 +124,7 @@ namespace af {
 								int temp = buffer.find_first_of('>');
 								if (temp != size)
 									//Something is behind
-									buffer = buffer.substr(temp);
+									buffer = buffer.substr(temp + 1);
 								else
 									//Nothing is behind
 									buffer.clear();
