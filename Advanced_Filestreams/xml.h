@@ -5,14 +5,16 @@
 #include <vector>
 
 namespace af {
-
+	///<summary>Handles XML-Files</summary>
 	class XML {
 	public:
+		///<summary>stores the atributename and the related content</summary>
 		struct Attribute {
 			std::string name;
 			std::string content;
 		};
 
+		///<summary>Represents a XML File</summary>
 		struct Structure
 		{
 			std::string key;
@@ -27,10 +29,8 @@ namespace af {
 
 		void open(std::string path);
 		void close();
-		void getKey();
-		void read(int depth);
 		auto read()->Structure;
-		void getContent(const std::string& key);
+		void write(Structure file);
 		auto getFileStruct() -> Structure;
 		auto getFile()->std::fstream;
 
@@ -39,8 +39,7 @@ namespace af {
 		af::XML::Structure parsedFile;
 		std::vector<std::string> tagList;
 		std::string buffer;
-		int useMode = 0;
-		int depth = 0;
+		int lastAction = 0;
 	};
 }
 
