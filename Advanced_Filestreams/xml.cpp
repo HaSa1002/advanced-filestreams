@@ -61,6 +61,7 @@ namespace af {
 		{
 			this->write(elem, 1);
 		}
+		buffer += "</" + file.key + ">\n";
 		if(!self) {
 			af::write(this->file, buffer);
 		}
