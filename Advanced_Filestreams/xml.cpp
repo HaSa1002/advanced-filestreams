@@ -33,7 +33,7 @@ namespace af {
 		close();
 	}
 
-	//Entfernt führende Leerzeichen und schreibt in einen neuen String
+	//Entfernt fÃ¼hrende Leerzeichen und schreibt in einen neuen String
 	bool eraseSpaces(std::string& line, std::string& buffer) {
 		if (!line.empty()) {
 			if (line.find_first_not_of('\t') != std::string::npos) {
@@ -46,7 +46,26 @@ namespace af {
 		}
 		throw(EmptyLine);
 	}
-
+	
+	void XML::write(Structure file, bool self) {
+		if(!self) {
+		buffer.clear();
+		}
+		buffer += "<" + file.key;
+		for each (af::XML::Attribute attribute in file.attributes)
+		{
+			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
+		}
+		buffer += ">" + file.content + "\n";
+		for each (af::XML::Structure elem in file.childs)
+		{
+			this->write(elem, 1);
+		}
+		if(!self) {
+			af::write(this->file, buffer);
+		}
+	} //write
+	
 	auto XML::read()->Structure {
 		bool opendTag = false;
 		Structure current;
