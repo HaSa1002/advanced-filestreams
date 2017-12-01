@@ -30,7 +30,7 @@ namespace af {
 		void open(std::string path);
 		void close();
 		auto read()->Structure;
-		void write(Structure file);
+		void write(Structure file, bool self = 0);
 		auto getFileStruct() -> Structure;
 		auto getFile()->std::fstream;
 
