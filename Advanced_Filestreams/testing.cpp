@@ -19,7 +19,11 @@ void output(af::XML::Structure child) {
 
 
 int main() {
-	af::XML xml(".\\test.xml");
+	//std::locale::global(std::locale(""));
+	std::string end;
+	std::cout << "Filepath: ";
+	std::cin >> end;
+	af::XML xml(end);
 	af::XML::Structure file;
 	file = xml.read();
 	std::cout << file.key << " (";
@@ -33,6 +37,6 @@ int main() {
 		output(elem);
 	}
 	std::cout << "END ... Press a key to close";
-	std::string end;
+	
 	std::cin >> end;
 }

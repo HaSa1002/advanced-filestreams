@@ -35,11 +35,18 @@ namespace af {
 		auto getFile()->std::fstream;
 
 	private:
+		void manage_stream(int action);
 		std::fstream file;
+		std::string filename;
 		af::XML::Structure parsedFile;
 		std::vector<std::string> tagList;
 		std::string buffer;
 		int lastAction = 0;
+		enum Action {
+			r,
+			w
+		};
+		
 	};
 }
 

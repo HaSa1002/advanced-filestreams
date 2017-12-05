@@ -260,3 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 /Builds
+/DB Datei (read).diagsession
+/DB Datei (read).vsps
