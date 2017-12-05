@@ -8,8 +8,17 @@ namespace af {
 		file.open(path, std::ios::in | std::ios::out);
 		if (!file.is_open())
 			throw(af::Exception::CouldntOpenFile);
+		lastAction = Action::r;
 	}
 
+	void XML::create(std::string path) {
+		file.open(path, std::fstream::out);
+		file << std::flush;
+		file.close();
+		file.clear();
+		this->open(path);
+		lastAction = Action::w;
+	}
 	void XML::close() {
 		if (file.is_open())
 			file.close();
@@ -65,6 +74,7 @@ namespace af {
 		buffer += "</" + file.key + ">\n";
 		if(!self) {
 			af::write(this->file, buffer);
+			this->file << std::flush;
 		}
 	} //write
 	
@@ -216,10 +226,8 @@ namespace af {
 				break;
 			case Action::w:
 				this->close();
-				file.open(filename, std::ios::out);
-				if (!file.is_open())
-					throw(af::Exception::CouldntOpenFile);
-				return;
+				this->create(filename);
+				break;
 			default:
 				break;
 			} //switch

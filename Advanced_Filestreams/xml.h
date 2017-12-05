@@ -28,6 +28,7 @@ namespace af {
 		~XML();
 
 		void open(std::string path);
+		void create(std::string path);
 		void close();
 		auto read()->Structure;
 		void write(Structure file, bool self = 0);
