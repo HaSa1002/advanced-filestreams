@@ -235,4 +235,12 @@ namespace af {
 		} //if
 	} //manage_stream
 
+	auto XML::getFile() -> std::fstream&	{
+		return file;
+	}
+
+	auto af::XML::getFileStruct() -> Structure
+	{
+		return parsedFile;
+	}
 } //AF

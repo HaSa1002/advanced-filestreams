@@ -1,3 +1,5 @@
+#define DEBUG
+#ifndef DEBUG
 #include "general.h"
 #include "xml.h"
 #include <iostream>
@@ -19,3 +21,4 @@ int main() {
 	std::cout << "END ... Press a key to close";
 	std::cin >> end;
 }
+#endif // !DEBUG
