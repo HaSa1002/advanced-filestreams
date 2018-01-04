@@ -12,6 +12,8 @@ namespace af {
 		struct Attribute {
 			std::string name;
 			std::string content;
+			bool operator==(const Attribute &right);
+			bool operator!=(const Attribute &right);
 		};
 
 		///<summary>Represents a XML File</summary>
@@ -21,6 +23,7 @@ namespace af {
 			std::vector<af::XML::Attribute> attributes;
 			std::string content;
 			std::vector<af::XML::Structure> childs;
+			bool operator==(const Structure &right);
 		};
 		///<summary>Opens a file</summary>
 		///<remarks>If you need to create the file first use the default constructor instead and call XML::create</remarks>
@@ -47,6 +50,12 @@ namespace af {
 
 	private:
 		void manage_stream(int action);
+		void eraseSpaces(std::string& line, std::string& buffer);
+		void skipIf();
+		bool checkForEndingTag(Structure & current);
+		bool getKey(Structure & dest);
+		void getAttribute(Structure & dest);
+		bool checkForAttributes();
 		std::fstream file;
 		std::string filename;
 		af::XML::Structure parsedFile;
@@ -61,7 +70,7 @@ namespace af {
 	};
 }
 
-
+#include "Struct.inl"
 
 #endif // !AF_XML
 

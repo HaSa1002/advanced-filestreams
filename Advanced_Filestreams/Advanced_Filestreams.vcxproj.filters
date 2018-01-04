@@ -38,4 +38,9 @@
       <Filter>Ressourcendateien</Filter>
     </Xml>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Struct.inl">
+      <Filter>Headerdateien</Filter>
+    </None>
+  </ItemGroup>
 </Project>
