@@ -4,6 +4,7 @@
 
 
 namespace af {
+
 	void XML::open(const std::string& path) {
 		file.open(path, std::ios::in | std::ios::out);
 		if (!file.is_open())
