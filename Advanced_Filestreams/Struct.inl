@@ -32,8 +32,12 @@ inline bool af::XML::Structure::operator==(const Structure & right)
 			if (l != r)
 				return false;
 		}
-		for each (Structure child in childs) {
-			if (!Structure::operator==(child))
+	}
+	if (right.childs.size() != childs.size())
+		return false;
+	if (!right.childs.empty()) {
+		for (int i = 0; i < childs.size(); ++i) {
+			if (!childs.at(i).operator==(right.childs.at(i)))
 				return false;
 		}
 	}

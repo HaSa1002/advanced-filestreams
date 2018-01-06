@@ -38,11 +38,12 @@ namespace af {
 		///<summary>Close a file</summary>
 		void close();
 		///<summary>Reads a file</summary>
-		///<returns>A Structure() which is the file</returns>
-		auto read()->Structure;
+		///<returns>A Structure which is the file</returns>
+		auto read(bool self = false)->Structure;
+		
 		///<summary>Writes into a file</summary>
 		///<param name="file">The Structure Struct which represents a file</param>
-		void write(Structure file, bool self = 0);
+		void write(Structure file, bool self = false, unsigned int run = 0);
 		///<returns>The loaded Filestruct</returns>
 		auto getFileStruct() -> Structure;
 		///<returns>The Filestream object</returns>
@@ -50,12 +51,13 @@ namespace af {
 
 	private:
 		void manage_stream(int action);
-		void eraseSpaces(std::string& line, std::string& buffer);
+		void eraseSpaces(std::string & line, std::string & buffer, std::streampos & pos);
+		
 		void skipIf();
-		bool checkForEndingTag(Structure & current);
-		bool getKey(Structure & dest);
-		void getAttribute(Structure & dest);
-		bool checkForAttributes();
+		bool checkForEndingTag(Structure & current, std::streampos & pos);
+		bool getKey(Structure & dest, std::streampos & pos);
+		void getAttribute(Structure & dest, std::streampos & pos);
+		bool checkForAttributes(std::streampos & pos);
 		std::fstream file;
 		std::string filename;
 		af::XML::Structure parsedFile;

@@ -43,33 +43,39 @@ namespace af {
 	}
 
 	//Entfernt führende Leerzeichen und schreibt in einen neuen String
-	void XML::eraseSpaces(std::string& line, std::string& buffer) {
+	void XML::eraseSpaces(std::string& line, std::string& buffer, std::streampos& pos) {
 		if (!line.empty()) {
-			if (line.find_first_not_of('\t') != std::string::npos) {
-				buffer = line.substr(line.find_first_not_of("\t"));
-			}
-			if (line.find_first_not_of(" ") != std::string::npos) {
-				buffer = line.substr(line.find_first_not_of(" "));
-			}
+			std::size_t offset = 0;
+			if (line.find_first_not_of('\t') != std::string::npos)
+				offset = line.find_first_not_of("\t");
+			if (line.find_first_not_of(" ") != std::string::npos)
+				offset += line.find_first_not_of(" ");
+
+			pos += offset;
+			buffer = line.erase(0, offset);
 			return;
 		}
 		throw(EmptyLine);
 	}
 	
-	void XML::write(Structure file, bool self) {
+	void XML::write(Structure file, bool self, unsigned int run) {
 		if(!self) {
 			buffer.clear();
 			manage_stream(Action::w);
 		}
-		buffer += "<" + file.key;
+		std::string spacing = "";
+		for (run; run > 0; --run) {
+			spacing += "\t";
+		}
+		buffer += spacing + "<" + file.key;
 		for each (af::XML::Attribute attribute in file.attributes) {
 			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
 		}
-		buffer += ">\n" + file.content + "\n";
+		buffer += ">\n" + spacing + "\t" +file.content + "\n";
 		for each (af::XML::Structure elem in file.childs) {
-			write(elem, 1);
+			write(elem, 1, run++);
 		}
-		buffer += "</" + file.key + ">\n";
+		buffer += spacing +  "</" + file.key + ">\n";
 		if(!self) {
 			af::write(this->file, buffer);
 			this->file << std::flush;
@@ -77,14 +83,13 @@ namespace af {
 	} //write
 
 	void XML::skipIf() {
-		eraseSpaces(buffer, buffer);
 		if (buffer.find("<!") == 0)
 			throw(EmptyLine);
 		if (buffer.find("<?") == 0)
 			throw(EmptyLine);
 	}
 
-	bool XML::checkForEndingTag(Structure& current) {
+	bool XML::checkForEndingTag(Structure& current, std::streampos& pos) {
 		unsigned int close = buffer.find("</");
 		if (close == 0) {
 			//is first char
@@ -93,6 +98,7 @@ namespace af {
 			if (close != std::string::npos) {
 				if (tagList.at(tagList.size() - 1) == buffer.substr(2, close - 2)) {
 					tagList.pop_back();
+					pos += close + 1;
 					buffer.clear();
 					return true;
 				}
@@ -104,45 +110,52 @@ namespace af {
 		return false;
 	}
 
-	bool XML::getKey(Structure& dest) {
+
+
+	bool XML::getKey(Structure& dest, std::streampos& pos) {
 		unsigned int end = buffer.find_first_of(" ");
 		if (end == std::string::npos || end > buffer.find_first_of(">")) {
 			//If attributes NOT included
-			end = buffer.find_first_of(">") - 1;
+			end = buffer.find_first_of('>') - 1;
 			dest.key = buffer.substr(1, end);
 			tagList.push_back(dest.key);
-			buffer = buffer.substr(end + 2);
+			buffer = buffer.erase(0, end + 2);
+			pos += end + 2;
 			return true;
 		}
 		else {
 			//If attributes included
 			dest.key = buffer.substr(1, end - 1);
 			tagList.push_back(dest.key);
-			buffer = buffer.substr(end + 1);
+			buffer = buffer.erase(0, end + 1);
+			pos += end + 1;
 			return false;
 		}
 	}
 
-	void XML::getAttribute(Structure &dest) {
+	void XML::getAttribute(Structure& dest, std::streampos& pos) {
 		Attribute attribute;
 		attribute.name = buffer.substr(0, buffer.find_first_of("="));
 		int start = buffer.find_first_of("=") + 2;
 		int ending = buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - start;
 		attribute.content = buffer.substr(start, ending);
 		dest.attributes.push_back(attribute);
+		buffer = buffer.erase(0, start + ending + 2);
+		pos += start + ending + 2;
 	}
 
-	bool XML::checkForAttributes() {
+	bool XML::checkForAttributes(std::streampos & pos) {
 		unsigned int end = buffer.find_first_of(" ");
 		if (end == std::string::npos || buffer.find_first_of('>') < end) {
 			//No attributes left
 			//Checking if there is anything behind the closing delimiter
 			int size = buffer.size() - 1;
 			int temp = buffer.find_first_of('>');
-			if (temp != size)
+			if (temp != size) {
 				//Something is behind
-				buffer = buffer.substr(temp + 1);
-			else
+				buffer = buffer.erase(0, temp + 1);
+				pos += temp + 1;
+			} else
 				//Nothing is behind
 				buffer.clear();
 			return true;
@@ -150,27 +163,31 @@ namespace af {
 		else {
 			//Attributes left
 			buffer = buffer.substr(end + 1);
+			pos += end + 1;
 			return false;
 		}
 	}
 	
-	auto XML::read()->Structure {
+	auto XML::read(bool self)->Structure {
 		manage_stream(Action::r);
 		bool opendTag = false;
 		Structure current;
-		std::streampos streampos = 0;
+		std::streampos streampos = file.tellg();
 		while (std::getline(file, buffer)) {
 			//erases Spaces
 			try {
+				eraseSpaces(buffer, buffer, streampos);
 				skipIf();
 			}
 			catch (af::Exception) {
 				//empty line
+				streampos = file.tellg();
 				continue;
 			}
 			//Checks for Endingtag
-			if (checkForEndingTag(current))
+			if (checkForEndingTag(current, streampos))
 				return current;
+
 			
 			if (buffer.find_first_of('<') == 0) {
 				//openeningTag found
@@ -187,14 +204,14 @@ namespace af {
 				else {
 					//first run
 					opendTag = true;
-					bool closingDelim = getKey(current);
+					bool closingDelim = getKey(current, streampos);
 					//Reading of Attributes
 					unsigned int end = buffer.find_first_of('>');
-					if (end != std::string::npos || !closingDelim) {
+					if (end != std::string::npos && !closingDelim) {
 						//attributes found
 						while (!closingDelim) {
-							getAttribute(current);
-							closingDelim = checkForAttributes();
+							getAttribute(current, streampos);
+							closingDelim = checkForAttributes(streampos);
 						} //WHILE !closingTag
 					} //IF attributes
 				} //ELSE opendTag
@@ -204,6 +221,21 @@ namespace af {
 				//buffer is not empty -> vi stuff left ...it works!
 				unsigned int close = buffer.find("</");
 				if (close != 0) {
+					if (buffer.find_first_of('<') == 0) {
+						//openeningTag found
+						if (opendTag) {
+							//method already run -> prepare recursive call
+							streampos -= 1;
+							file.seekg(streampos);
+							//streampos += 1;
+							try {
+								current.childs.push_back(this->read());
+							}
+							catch (af::Exception) {
+								throw;
+							}
+						}
+					}
 					//content left -> get content
 					current.content = buffer.substr(0, close);
 					if (close == std::string::npos)
@@ -214,20 +246,20 @@ namespace af {
 						buffer = buffer.substr(close);
 					close = buffer.find("</");
 				}
-				if (checkForEndingTag(current))
+				if (checkForEndingTag(current, streampos))
 					return current;
 			} //IF empty
 			streampos = file.tellg();
 		} //while
-
+		if (tagList.empty())
+			return current;
 		//Should never reached, because method normally ends earlier
 		throw(af::Exception::FoundUnexpectedEndOfFile);
 	} //read
 
 	void XML::manage_stream(int action) {
 		if (action != this->lastAction) {
-			switch (action)
-			{
+			switch (action) {
 			case Action::r:
 				this->close();
 				this->open(filename);

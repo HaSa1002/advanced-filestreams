@@ -19,6 +19,11 @@ namespace UnitTest
 			fileStruct.key = "test";
 			fileStruct.content = "hello";
 			fileStruct.attributes.push_back(attributes);
+			af::XML::Structure f2;
+			f2.key = "test";
+			f2.content = "hello";
+			f2.attributes.push_back(attributes);
+			fileStruct.childs.push_back(f2);
 			xml.create("u_test");
 			xml.write(fileStruct);
 			xml.close();
@@ -34,12 +39,28 @@ namespace UnitTest
 			fileStruct.key = "test";
 			fileStruct.content = "hello";
 			fileStruct.attributes.push_back(attributes);
+			af::XML::Structure f2;
+			f2.key = "test";
+			f2.content = "hello";
+			f2.attributes.push_back(attributes);
+			fileStruct.childs.push_back(f2);
 			xml.open("u_test");
 			af::XML::Structure s = xml.read();
 			bool same = (fileStruct == s);
-				
-			Assert::IsTrue(!same);
-			
+			xml.close();
+			Assert::IsTrue(same);
+		}
+
+		TEST_METHOD(ioTest)
+		{
+			std::string path = "map12de.xml";
+			af::XML xml;
+			xml.open(path);
+			af::XML::Structure fileStruct;
+			fileStruct = xml.read();
+			xml.close();
+			xml.create(path + ".t");
+			xml.write(fileStruct);
 			xml.close();
 		}
 
