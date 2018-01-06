@@ -4,27 +4,35 @@
 
 
 namespace af {
-	void XML::open(std::string path) {
+	void XML::open(const std::string& path) {
 		file.open(path, std::ios::in | std::ios::out);
 		if (!file.is_open())
 			throw(af::Exception::CouldntOpenFile);
 		lastAction = Action::r;
+		filename = path;
 	}
 
-	void XML::create(std::string path) {
+
+	////////////////////////////////////////////////////////////
+	void XML::create(const std::string& path) {
 		file.open(path, std::fstream::out);
 		file << std::flush;
 		file.close();
 		file.clear();
-		this->open(path);
+		open(path);
 		lastAction = Action::w;
 	}
+
+
+	////////////////////////////////////////////////////////////
 	void XML::close() {
 		if (file.is_open())
 			file.close();
 	}
 
-	XML::XML(std::string path) {
+
+	////////////////////////////////////////////////////////////
+	XML::XML(const std::string& path) {
 		std::locale::global(std::locale(""));
 		try {
 			open(path);
@@ -34,16 +42,21 @@ namespace af {
 		}
 	}
 
+
+	////////////////////////////////////////////////////////////
 	XML::XML() {
 		std::locale::global(std::locale(""));
 	}
 
+
+	////////////////////////////////////////////////////////////
 	XML::~XML() {
 		close();
 	}
 
-	//Entfernt führende Leerzeichen und schreibt in einen neuen String
-	void XML::eraseSpaces(std::string& line, std::string& buffer, std::streampos& pos) {
+
+	////////////////////////////////////////////////////////////
+	void XML::eraseSpaces(std::string& line, std::string& buffer) {
 		if (!line.empty()) {
 			std::size_t offset = 0;
 			if (line.find_first_not_of('\t') != std::string::npos)
@@ -51,13 +64,14 @@ namespace af {
 			if (line.find_first_not_of(" ") != std::string::npos)
 				offset += line.find_first_not_of(" ");
 
-			pos += offset;
 			buffer = line.erase(0, offset);
 			return;
 		}
 		throw(EmptyLine);
 	}
-	
+
+
+	////////////////////////////////////////////////////////////
 	void XML::write(Structure file, bool self, unsigned int run) {
 		if(!self) {
 			buffer.clear();
@@ -82,6 +96,8 @@ namespace af {
 		}
 	} //write
 
+
+	  ////////////////////////////////////////////////////////////
 	void XML::skipIf() {
 		if (buffer.find("<!") == 0)
 			throw(EmptyLine);
@@ -89,7 +105,9 @@ namespace af {
 			throw(EmptyLine);
 	}
 
-	bool XML::checkForEndingTag(Structure& current, std::streampos& pos) {
+
+	////////////////////////////////////////////////////////////
+	bool XML::checkForEndingTag(Structure& current) {
 		unsigned int close = buffer.find("</");
 		if (close == 0) {
 			//is first char
@@ -98,8 +116,7 @@ namespace af {
 			if (close != std::string::npos) {
 				if (tagList.at(tagList.size() - 1) == buffer.substr(2, close - 2)) {
 					tagList.pop_back();
-					pos += close + 1;
-					buffer.clear();
+					buffer.erase(0, close + 1);
 					return true;
 				}
 				else
@@ -111,8 +128,8 @@ namespace af {
 	}
 
 
-
-	bool XML::getKey(Structure& dest, std::streampos& pos) {
+	////////////////////////////////////////////////////////////
+	bool XML::getKey(Structure& dest) {
 		unsigned int end = buffer.find_first_of(" ");
 		if (end == std::string::npos || end > buffer.find_first_of(">")) {
 			//If attributes NOT included
@@ -120,7 +137,6 @@ namespace af {
 			dest.key = buffer.substr(1, end);
 			tagList.push_back(dest.key);
 			buffer = buffer.erase(0, end + 2);
-			pos += end + 2;
 			return true;
 		}
 		else {
@@ -128,12 +144,13 @@ namespace af {
 			dest.key = buffer.substr(1, end - 1);
 			tagList.push_back(dest.key);
 			buffer = buffer.erase(0, end + 1);
-			pos += end + 1;
 			return false;
 		}
 	}
 
-	void XML::getAttribute(Structure& dest, std::streampos& pos) {
+
+	////////////////////////////////////////////////////////////
+	void XML::getAttribute(Structure& dest) {
 		Attribute attribute;
 		attribute.name = buffer.substr(0, buffer.find_first_of("="));
 		int start = buffer.find_first_of("=") + 2;
@@ -141,10 +158,11 @@ namespace af {
 		attribute.content = buffer.substr(start, ending);
 		dest.attributes.push_back(attribute);
 		buffer = buffer.erase(0, start + ending + 2);
-		pos += start + ending + 2;
 	}
 
-	bool XML::checkForAttributes(std::streampos & pos) {
+
+	////////////////////////////////////////////////////////////
+	bool XML::checkForAttributes() {
 		unsigned int end = buffer.find_first_of(" ");
 		if (end == std::string::npos || buffer.find_first_of('>') < end) {
 			//No attributes left
@@ -154,7 +172,6 @@ namespace af {
 			if (temp != size) {
 				//Something is behind
 				buffer = buffer.erase(0, temp + 1);
-				pos += temp + 1;
 			} else
 				//Nothing is behind
 				buffer.clear();
@@ -163,29 +180,36 @@ namespace af {
 		else {
 			//Attributes left
 			buffer = buffer.substr(end + 1);
-			pos += end + 1;
 			return false;
 		}
 	}
-	
+
+
+	////////////////////////////////////////////////////////////
 	auto XML::read(bool self)->Structure {
+		// Vars
 		manage_stream(Action::r);
 		bool opendTag = false;
 		Structure current;
-		std::streampos streampos = file.tellg();
-		while (std::getline(file, buffer)) {
+		
+		//Check if file has to be read
+		if (!self)
+			af::read(filename, data);
+
+		//skip reading if buffer is not clear
+		while (af::getline(data, buffer)) {
 			//erases Spaces
 			try {
-				eraseSpaces(buffer, buffer, streampos);
+				eraseSpaces(buffer, buffer);
 				skipIf();
 			}
 			catch (af::Exception) {
-				//empty line
-				streampos = file.tellg();
+				//empty line, read new line
+				buffer.clear();
 				continue;
 			}
 			//Checks for Endingtag
-			if (checkForEndingTag(current, streampos))
+			if (checkForEndingTag(current))
 				return current;
 
 			
@@ -193,9 +217,8 @@ namespace af {
 				//openeningTag found
 				if (opendTag) {
 					//method already run -> prepare recursive call
-					file.seekg(streampos);
 					try {
-						current.childs.push_back(this->read());
+						current.childs.push_back(this->read(true));
 					}
 					catch (af::Exception) {
 						throw;
@@ -204,14 +227,14 @@ namespace af {
 				else {
 					//first run
 					opendTag = true;
-					bool closingDelim = getKey(current, streampos);
+					bool closingDelim = getKey(current);
 					//Reading of Attributes
 					unsigned int end = buffer.find_first_of('>');
 					if (end != std::string::npos && !closingDelim) {
 						//attributes found
 						while (!closingDelim) {
-							getAttribute(current, streampos);
-							closingDelim = checkForAttributes(streampos);
+							getAttribute(current);
+							closingDelim = checkForAttributes();
 						} //WHILE !closingTag
 					} //IF attributes
 				} //ELSE opendTag
@@ -221,15 +244,12 @@ namespace af {
 				//buffer is not empty -> vi stuff left ...it works!
 				unsigned int close = buffer.find("</");
 				if (close != 0) {
-					if (buffer.find_first_of('<') == 0) {
+					while(buffer.find_first_of('<') == 0) {
 						//openeningTag found
 						if (opendTag) {
 							//method already run -> prepare recursive call
-							streampos -= 1;
-							file.seekg(streampos);
-							//streampos += 1;
 							try {
-								current.childs.push_back(this->read());
+								current.childs.push_back(this->read(true));
 							}
 							catch (af::Exception) {
 								throw;
@@ -243,13 +263,12 @@ namespace af {
 						buffer.clear();
 					else
 						//Endingtag
-						buffer = buffer.substr(close);
+						buffer.erase(0, close);
 					close = buffer.find("</");
 				}
-				if (checkForEndingTag(current, streampos))
+				if (checkForEndingTag(current))
 					return current;
 			} //IF empty
-			streampos = file.tellg();
 		} //while
 		if (tagList.empty())
 			return current;
@@ -257,7 +276,9 @@ namespace af {
 		throw(af::Exception::FoundUnexpectedEndOfFile);
 	} //read
 
-	void XML::manage_stream(int action) {
+
+	////////////////////////////////////////////////////////////
+	void XML::manage_stream(Action action) {
 		if (action != this->lastAction) {
 			switch (action) {
 			case Action::r:
@@ -275,10 +296,14 @@ namespace af {
 		} //if
 	} //manage_stream
 
+
+	////////////////////////////////////////////////////////////
 	auto XML::getFile() -> std::fstream&	{
 		return file;
 	}
 
+
+	////////////////////////////////////////////////////////////
 	auto af::XML::getFileStruct() -> Structure
 	{
 		return parsedFile;

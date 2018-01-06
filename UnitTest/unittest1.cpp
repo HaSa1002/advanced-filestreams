@@ -53,15 +53,35 @@ namespace UnitTest
 
 		TEST_METHOD(ioTest)
 		{
-			std::string path = "map12de.xml";
-			af::XML xml;
-			xml.open(path);
-			af::XML::Structure fileStruct;
-			fileStruct = xml.read();
-			xml.close();
-			xml.create(path + ".t");
-			xml.write(fileStruct);
-			xml.close();
+			try {
+				std::string path = "debug.xml";
+				af::XML xml;
+				xml.open(path);
+				af::XML::Structure fileStruct;
+				fileStruct = xml.read();
+				xml.close();
+				xml.create(path + ".t");
+				xml.write(fileStruct);
+				xml.close();
+			}
+			catch (...)
+			{
+				Assert::Fail();
+			}
+		}
+
+
+		TEST_METHOD(afRead) {
+			std::string buffer;
+			af::read("r_test.unit", buffer);
+			Assert::AreEqual("<test name=\"unit\">\nthis is a test</test>", buffer.data());
+		}
+
+		TEST_METHOD(afWrite) {
+			std::fstream file;
+			file.open("r_test.unit");
+			Assert::IsTrue(file.is_open());
+			af::write(file, "<test name=\"unit\">\nthis is a test</test>");
 		}
 
 	};
