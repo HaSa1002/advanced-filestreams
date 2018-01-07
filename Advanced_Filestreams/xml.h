@@ -172,7 +172,7 @@ namespace af {
 		////////////////////////////////////////////////////////////
 		/// <summary>consumes the ending tag if given</summary>
 		///
-		/// <exception cref=="af::Exception::FoundUnexpectedEndingTag"></exception
+		/// <exception cref=="af::Exception::FoundUnexpectedEndingTag"></exception>
 		///
 		/// <returns> True if tag (key) consumed </returns>
 		///

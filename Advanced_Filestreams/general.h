@@ -48,6 +48,7 @@ namespace af {
 		/// <param name="source">where to read from</param>
 		/// <param name="dest">where to write into</param>
 		/// <param name="delim">delimeting character. Default: "\n"</param>
+		/// <param name="skip_if_not_empty">If dest is not empty, nothing is read, when true</param>
 		///
 		////////////////////////////////////////////////////////////
 		extern bool getline(std::string& source, std::string& dest, bool skip_if_not_empty = true, const std::string& delim = "\n");
