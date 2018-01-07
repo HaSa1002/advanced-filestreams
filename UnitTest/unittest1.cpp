@@ -54,7 +54,7 @@ namespace UnitTest
 		TEST_METHOD(ioTest)
 		{
 			try {
-				std::string path = "debug.xml";
+				std::string path = "map100de.xml";
 				af::XML xml;
 				xml.open(path);
 				af::XML::Structure fileStruct;
@@ -64,8 +64,10 @@ namespace UnitTest
 				xml.write(fileStruct);
 				xml.close();
 			}
-			catch (...)
-			{
+			catch (af::Exception) {
+				Assert::Fail();
+			}
+			catch (...) {
 				Assert::Fail();
 			}
 		}

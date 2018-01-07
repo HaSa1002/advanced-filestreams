@@ -79,19 +79,32 @@ namespace af {
 			manage_stream(Action::w);
 		}
 		std::string spacing = "";
-		for (run; run > 0; --run) {
+		for (int i = run; i > 0; --i) {
 			spacing += "\t";
 		}
 		buffer += spacing + "<" + file.key;
 		for each (af::XML::Attribute attribute in file.attributes) {
 			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
 		}
-		if(file.content.empty())
-		buffer += ">\n" + spacing + "\t" +file.content + "\n";
-		for each (af::XML::Structure elem in file.childs) {
-			write(elem, 1, run + 1);
+		buffer += ">";
+		bool skipChilds = file.childs.empty();
+		if (!file.content.empty()) {
+			if (skipChilds)
+				buffer += file.content;
+			else
+				buffer += "\n" + spacing + "\t" + file.content + "\n";
 		}
-		buffer += spacing +  "</" + file.key + ">\n";
+		else {
+			if (!skipChilds)
+				buffer += "\n";
+		}
+		if (!skipChilds) {
+			for each (af::XML::Structure elem in file.childs) {
+				write(elem, 1, run + 1);
+			}
+			buffer += spacing;
+		}
+		buffer += "</" + file.key + ">\n";
 		if(!self) {
 			af::write(this->file, buffer);
 			this->file << std::flush;
@@ -245,26 +258,20 @@ namespace af {
 				unsigned int close = buffer.find("</");
 				if (close != 0) {
 					while(buffer.find_first_of('<') == 0) {
-						//openeningTag found
-						if (opendTag) {
-							//method already run -> prepare recursive call
-							try {
-								current.childs.push_back(this->read(true));
-							}
-							catch (af::Exception) {
-								throw;
-							}
+						//method already run -> prepare recursive call
+						try {
+							current.childs.push_back(this->read(true));
+							if (checkForEndingTag(current))
+								return current;
+						}
+						catch (af::Exception) {
+							throw;
 						}
 					}
 					unsigned int close = buffer.find("</");
 					//content left -> get content
 					current.content = buffer.substr(0, close);
-					if (close == std::string::npos)
-						//kein Endingtag
-						buffer.clear();
-					else
-						//Endingtag
-						buffer.erase(0, close);
+					buffer.erase(0, close);
 				}
 				if (checkForEndingTag(current))
 					return current;
