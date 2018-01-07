@@ -86,9 +86,10 @@ namespace af {
 		for each (af::XML::Attribute attribute in file.attributes) {
 			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
 		}
+		if(file.content.empty())
 		buffer += ">\n" + spacing + "\t" +file.content + "\n";
 		for each (af::XML::Structure elem in file.childs) {
-			write(elem, 1, run++);
+			write(elem, 1, run + 1);
 		}
 		buffer += spacing +  "</" + file.key + ">\n";
 		if(!self) {
@@ -170,12 +171,10 @@ namespace af {
 			//Checking if there is anything behind the closing delimiter
 			int size = buffer.size() - 1;
 			int temp = buffer.find_first_of('>');
-			if (temp != size) {
+			if (temp != size)
 				//Something is behind
 				buffer = buffer.erase(0, temp + 1);
-			} else
-				//Nothing is behind
-				buffer.clear();
+
 			return true;
 		}
 		else {
@@ -257,6 +256,7 @@ namespace af {
 							}
 						}
 					}
+					unsigned int close = buffer.find("</");
 					//content left -> get content
 					current.content = buffer.substr(0, close);
 					if (close == std::string::npos)
@@ -265,7 +265,6 @@ namespace af {
 					else
 						//Endingtag
 						buffer.erase(0, close);
-					close = buffer.find("</");
 				}
 				if (checkForEndingTag(current))
 					return current;
@@ -305,8 +304,7 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	auto af::XML::getFileStruct() -> Structure
-	{
+	auto af::XML::getFileStruct() -> Structure {
 		return parsedFile;
 	}
 } //AF

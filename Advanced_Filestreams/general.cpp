@@ -45,12 +45,12 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	extern bool getline(std::string & source, std::string & dest, bool skip_if_not_empty, const char & delim) {
+	extern bool getline(std::string & source, std::string & dest, bool skip_if_not_empty, const std::string & delim) {
 		if (skip_if_not_empty && !dest.empty())
 			return true;
 
 		unsigned int end_pos = source.find_first_of(delim);
-		if (end_pos == std::string::npos)
+		if (end_pos == std::string::npos && source.empty())
 			return false;
 
 		dest = source.substr(0, end_pos);
