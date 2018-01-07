@@ -5,6 +5,7 @@
 #include <array>
 
 namespace af {
+	
 	extern void write(std::fstream& file, const std::string & to_write) {
 		file << to_write;
 	}

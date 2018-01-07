@@ -18,8 +18,8 @@ namespace af {
 		///
 		////////////////////////////////////////////////////////////
 		struct Attribute {
-			std::string name;		/// <value>The name of the attribute</value>
-			std::string content;	/// <value>the content of the attribute</value>
+			std::string name;		///< The name of the attribute
+			std::string content;	///< the content of the attribute
 
 			////////////////////////////////////////////////////////////
 			/// <summary>Checks if to Attribute objects are identical</summary>
@@ -39,10 +39,10 @@ namespace af {
 		///
 		////////////////////////////////////////////////////////////
 		struct Structure {
-			std::string key;							/// <value>The name of a tag</value>
-			std::vector<af::XML::Attribute> attributes;	/// <value>A vector of attributes</value>
-			std::string content;						/// <value>the content</value>
-			std::vector<af::XML::Structure> childs;		/// <value>a vector of child elements</value>
+			std::string key;							///< The name of a tag
+			std::vector<af::XML::Attribute> attributes;	///< A vector of attributes
+			std::string content;						///< the content
+			std::vector<af::XML::Structure> childs;		///< a vector of child elements
 
 			////////////////////////////////////////////////////////////
 			/// <summary>Checks if to Structure objects are identical</summary>
@@ -140,43 +140,67 @@ namespace af {
 		///
 		////////////////////////////////////////////////////////////
 		enum class Action {
-			r,	/// read
-			w	/// write
+			r,	///< read
+			w	///< write
 		};
 
 		////////////////////////////////////////////////////////////
+		/// <summary> manages the filestream direction </summary>
 		///
+		/// <param name="action">Action value</param>
 		///
 		////////////////////////////////////////////////////////////
 		void manage_stream(Action action);
 
 		////////////////////////////////////////////////////////////
+		/// <summary> erases spaces and tabs in front of a line</summary>
 		///
+		/// <param name="source">String of the unformatted source</param>
+		/// <param name="destination">String where the line goes into</param>
 		///
 		////////////////////////////////////////////////////////////
-		void eraseSpaces(std::string & line, std::string & buffer);
+		void eraseSpaces(std::string& source, std::string& destination);
 		
+		////////////////////////////////////////////////////////////
+		/// <summary>Checks if buffer is empty</summary>
+		///
+		/// <exception cref="af::Exception::EmptyLine">line is empty</exception>
+		///
+		////////////////////////////////////////////////////////////
 		void skipIf();
-		////////////////////////////////////////////////////////////
-		///
-		///
-		////////////////////////////////////////////////////////////
-		bool checkForEndingTag(Structure & current);
 
 		////////////////////////////////////////////////////////////
+		/// <summary>consumes the ending tag if given</summary>
 		///
+		/// <exception cref=="af::Exception::FoundUnexpectedEndingTag"></exception
+		///
+		/// <returns> True if tag (key) consumed </returns>
 		///
 		////////////////////////////////////////////////////////////
-		bool getKey(Structure & dest);
+		bool checkForEndingTag();
 
 		////////////////////////////////////////////////////////////
+		/// <summary>consumes the key</summary>
 		///
+		/// <param name="destination">the working Structure object</param>
+		///
+		/// <returns>True if no attributes included</returns>
 		///
 		////////////////////////////////////////////////////////////
-		void getAttribute(Structure & dest);
+		bool getKey(Structure & destination);
 
 		////////////////////////////////////////////////////////////
+		/// <summary>consumes an Attribute</summary>
 		///
+		/// <param name="destination">the working Structure object</param>
+		///
+		////////////////////////////////////////////////////////////
+		void getAttribute(Structure & destination);
+
+		////////////////////////////////////////////////////////////
+		/// <summary>Checks if Attributes are left</summary>
+		///
+		/// <returns> True if attributes left</returns>
 		///
 		////////////////////////////////////////////////////////////
 		bool checkForAttributes();
@@ -184,14 +208,13 @@ namespace af {
 		////////////////////////////////////////////////////////////
 		// Member data
 		////////////////////////////////////////////////////////////
-		std::string					buffer;			///
-		std::string					data;			///
-		std::fstream				file;			///
-		std::string					filename;		///
-		Action						lastAction;		///
-		af::XML::Structure			parsedFile;		///
-		std::vector<std::string>	tagList;		///
-
+		std::string					buffer;			///< The working buffer
+		std::string					data;			///< The input buffer
+		std::fstream				file;			///< The filestream object
+		std::string					filename;		///< Filename
+		Action						lastAction;		///< last action performed on fstream
+		af::XML::Structure			parsedFile;		///< Structure object of the file
+		std::vector<std::string>	tagList;		///< saves the opend tags (keys)
 	};
 }
 

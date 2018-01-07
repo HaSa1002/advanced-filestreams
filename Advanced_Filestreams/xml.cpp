@@ -57,18 +57,18 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	void XML::eraseSpaces(std::string& line, std::string& buffer) {
-		if (!line.empty()) {
+	void XML::eraseSpaces(std::string& source, std::string& destination) {
+		if (!source.empty()) {
 			std::size_t offset = 0;
-			if (line.find_first_not_of('\t') != std::string::npos)
-				offset = line.find_first_not_of("\t");
-			if (line.find_first_not_of(" ") != std::string::npos)
-				offset += line.find_first_not_of(" ");
+			if (source.find_first_not_of('\t') != std::string::npos)
+				offset = source.find_first_not_of("\t");
+			if (source.find_first_not_of(" ") != std::string::npos)
+				offset += source.find_first_not_of(" ");
 
-			buffer = line.erase(0, offset);
+			destination = source.erase(0, offset);
 			return;
 		}
-		throw(EmptyLine);
+		throw(Exception::EmptyLine);
 	}
 
 
@@ -115,18 +115,16 @@ namespace af {
 	  ////////////////////////////////////////////////////////////
 	void XML::skipIf() {
 		if (buffer.find("<!") == 0)
-			throw(EmptyLine);
+			throw(Exception::EmptyLine);
 		if (buffer.find("<?") == 0)
-			throw(EmptyLine);
+			throw(Exception::EmptyLine);
 	}
 
 
 	////////////////////////////////////////////////////////////
-	bool XML::checkForEndingTag(Structure& current) {
+	bool XML::checkForEndingTag() {
 		unsigned int close = buffer.find("</");
 		if (close == 0) {
-			//is first char
-			//Häh Anfang
 			close = buffer.find('>');
 			if (close != std::string::npos) {
 				if (tagList.at(tagList.size() - 1) == buffer.substr(2, close - 2)) {
@@ -144,20 +142,20 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	bool XML::getKey(Structure& dest) {
+	bool XML::getKey(Structure& destination) {
 		unsigned int end = buffer.find_first_of(" ");
 		if (end == std::string::npos || end > buffer.find_first_of(">")) {
 			//If attributes NOT included
 			end = buffer.find_first_of('>') - 1;
-			dest.key = buffer.substr(1, end);
-			tagList.push_back(dest.key);
+			destination.key = buffer.substr(1, end);
+			tagList.push_back(destination.key);
 			buffer = buffer.erase(0, end + 2);
 			return true;
 		}
 		else {
 			//If attributes included
-			dest.key = buffer.substr(1, end - 1);
-			tagList.push_back(dest.key);
+			destination.key = buffer.substr(1, end - 1);
+			tagList.push_back(destination.key);
 			buffer = buffer.erase(0, end + 1);
 			return false;
 		}
@@ -165,13 +163,13 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	void XML::getAttribute(Structure& dest) {
+	void XML::getAttribute(Structure& destination) {
 		Attribute attribute;
 		attribute.name = buffer.substr(0, buffer.find_first_of("="));
 		int start = buffer.find_first_of("=") + 2;
 		int ending = buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - start;
 		attribute.content = buffer.substr(start, ending);
-		dest.attributes.push_back(attribute);
+		destination.attributes.push_back(attribute);
 		buffer = buffer.erase(0, start + ending + 2);
 	}
 
@@ -222,7 +220,7 @@ namespace af {
 				continue;
 			}
 			//Checks for Endingtag
-			if (checkForEndingTag(current))
+			if (checkForEndingTag())
 				return current;
 
 			
@@ -261,7 +259,7 @@ namespace af {
 						//method already run -> prepare recursive call
 						try {
 							current.childs.push_back(this->read(true));
-							if (checkForEndingTag(current))
+							if (checkForEndingTag())
 								return current;
 						}
 						catch (af::Exception) {
@@ -273,7 +271,7 @@ namespace af {
 					current.content = buffer.substr(0, close);
 					buffer.erase(0, close);
 				}
-				if (checkForEndingTag(current))
+				if (checkForEndingTag())
 					return current;
 			} //IF empty
 		} //while

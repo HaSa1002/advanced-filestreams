@@ -54,7 +54,7 @@ namespace UnitTest
 		TEST_METHOD(ioTest)
 		{
 			try {
-				std::string path = "map100de.xml";
+				std::string path = "debug.xml";
 				af::XML xml;
 				xml.open(path);
 				af::XML::Structure fileStruct;

@@ -7,6 +7,8 @@ inline bool af::XML::Attribute::operator==(const Attribute & right)
 	return true;
 }
 
+
+////////////////////////////////////////////////////////////
 inline bool af::XML::Attribute::operator!=(const Attribute & right)
 {
 	if (right.name == name)
@@ -17,6 +19,7 @@ inline bool af::XML::Attribute::operator!=(const Attribute & right)
 }
 
 
+////////////////////////////////////////////////////////////
 inline bool af::XML::Structure::operator==(const Structure & right)
 {
 	if (right.key != key)
