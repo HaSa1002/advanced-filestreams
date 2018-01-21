@@ -1,4 +1,3 @@
-#pragma once
 #include "xml.h"
 #include "general.h"
 
@@ -176,7 +175,7 @@ namespace af {
 
 	////////////////////////////////////////////////////////////
 	bool XML::checkForAttributes() {
-		unsigned int end = buffer.find_first_of(" ");
+		unsigned int end = buffer.find_first_of("\"");
 		if (end == std::string::npos || buffer.find_first_of('>') < end) {
 			//No attributes left
 			//Checking if there is anything behind the closing delimiter
@@ -190,7 +189,7 @@ namespace af {
 		}
 		else {
 			//Attributes left
-			buffer = buffer.substr(end + 1);
+			//buffer = buffer.substr(end + 1);
 			return false;
 		}
 	}
