@@ -189,7 +189,6 @@ namespace af {
 		}
 		else {
 			//Attributes left
-			//buffer = buffer.substr(end + 1);
 			return false;
 		}
 	}
