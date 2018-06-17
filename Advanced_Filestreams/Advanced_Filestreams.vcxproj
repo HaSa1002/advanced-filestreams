@@ -23,7 +23,7 @@
     <ProjectGuid>{3392163F-E7BB-4628-885E-A27ACA84187D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Advanced_Filestreams</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -146,10 +146,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="general.h" />
-    <ClInclude Include="xml.h" />
+    <ClInclude Include="csv.hpp" />
+    <ClInclude Include="general.hpp" />
+    <ClInclude Include="xml.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="csv.cpp" />
     <ClCompile Include="general.cpp" />
     <ClCompile Include="testing.cpp" />
     <ClCompile Include="xml.cpp" />

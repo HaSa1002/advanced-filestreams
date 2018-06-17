@@ -1,5 +1,5 @@
-#include "xml.h"
-#include "general.h"
+#include "xml.hpp"
+#include "general.hpp"
 
 
 namespace af {

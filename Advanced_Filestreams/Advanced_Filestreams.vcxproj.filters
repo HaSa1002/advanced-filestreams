@@ -15,10 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="general.h">
+    <ClInclude Include="csv.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="xml.h">
+    <ClInclude Include="xml.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="general.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -30,6 +33,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="testing.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="csv.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef AF_XML
 #define AF_XML
-#include "general.h"
+#include "general.hpp"
 #include <vector>
 
 namespace af {

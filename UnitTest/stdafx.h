@@ -9,6 +9,6 @@
 
 // Header für CppUnitTest
 #include "CppUnitTest.h"
-#include "../Advanced_Filestreams/xml.h"
+#include "../Advanced_Filestreams/xml.hpp"
 
 // TODO: Hier auf zusätzliche Header, die das Programm erfordert, verweisen.
