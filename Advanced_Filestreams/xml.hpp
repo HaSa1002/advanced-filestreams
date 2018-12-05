@@ -3,6 +3,7 @@
 #define AF_XML
 #include "general.hpp"
 #include <vector>
+#include <map>
 
 namespace af {
 	
@@ -17,22 +18,7 @@ namespace af {
 		/// <summary>Represents a the attributes of a tag</summary>
 		///
 		////////////////////////////////////////////////////////////
-		struct Attribute {
-			std::string name;		///< The name of the attribute
-			std::string content;	///< the content of the attribute
-
-			////////////////////////////////////////////////////////////
-			/// <summary>Checks if to Attribute objects are identical</summary>
-			///
-			////////////////////////////////////////////////////////////
-			bool operator==(const Attribute &right);
-
-			////////////////////////////////////////////////////////////
-			/// <summary>Checks if to Structure objects aren't identical</summary>
-			///
-			////////////////////////////////////////////////////////////
-			bool operator!=(const Attribute &right);
-		};
+		using Attribute = std::pair<std::string, std::string>;
 
 		////////////////////////////////////////////////////////////
 		/// <summary>Represents a XML File</summary>
@@ -40,7 +26,7 @@ namespace af {
 		////////////////////////////////////////////////////////////
 		struct Structure {
 			std::string key;							///< The name of a tag
-			std::vector<af::XML::Attribute> attributes;	///< A vector of attributes
+			std::map<std::string, std::string> attributes;	///< A vector of attributes
 			std::string content;						///< the content
 			std::vector<af::XML::Structure> childs;		///< a vector of child elements
 

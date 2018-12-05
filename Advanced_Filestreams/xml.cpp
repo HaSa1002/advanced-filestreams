@@ -78,8 +78,8 @@ namespace af {
 			spacing += "\t";
 		}
 		buffer += spacing + "<" + file.key;
-		for (af::XML::Attribute attribute : file.attributes) {
-			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
+		for (auto& attribute : file.attributes) {
+			buffer += " " + attribute.first + "=\"" + attribute.second + "\"";
 		}
 		buffer += ">";
 		bool skipChilds = file.childs.empty();
@@ -161,11 +161,11 @@ namespace af {
 	////////////////////////////////////////////////////////////
 	void XML::getAttribute(Structure& destination) {
 		Attribute attribute;
-		attribute.name = buffer.substr(0, buffer.find_first_of("="));
+		attribute.first = buffer.substr(0, buffer.find_first_of("="));
 		int start = buffer.find_first_of("=") + 2;
 		int ending = buffer.find_first_of("\"", buffer.find_first_of("=") + 2) - start;
-		attribute.content = buffer.substr(start, ending);
-		destination.attributes.push_back(attribute);
+		attribute.second = buffer.substr(start, ending);
+		destination.attributes.emplace(attribute);
 		buffer = buffer.erase(0, start + ending + 2);
 	}
 
