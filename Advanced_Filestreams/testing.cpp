@@ -1,7 +1,7 @@
 #define DEBUG
 #ifndef DEBUG
-#include "general.h"
-#include "xml.h"
+#include "general.hpp"
+#include "xml.hpp"
 #include <iostream>
 #pragma comment(linker, "/SUBSYSTEM:console /ENTRY:mainCRTStartup")
 
