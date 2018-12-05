@@ -15,12 +15,9 @@ namespace af {
 
 	////////////////////////////////////////////////////////////
 	void XML::create(const std::string& path) {
-		file.open(path, std::fstream::out);
-		file << std::flush;
-		file.close();
-		file.clear();
+		std::ofstream f { path };
+		f << std::flush;
 		open(path);
-		lastAction = Action::w;
 	}
 
 
@@ -36,8 +33,7 @@ namespace af {
 		std::locale::global(std::locale(""));
 		try {
 			open(path);
-		}
-		catch (af::Exception) {
+		} catch (af::Exception) {
 			throw;
 		}
 	}
@@ -73,7 +69,7 @@ namespace af {
 
 	////////////////////////////////////////////////////////////
 	void XML::write(Structure file, bool self, unsigned int run) {
-		if(!self) {
+		if (!self) {
 			buffer.clear();
 			manage_stream(Action::w);
 		}
@@ -82,7 +78,7 @@ namespace af {
 			spacing += "\t";
 		}
 		buffer += spacing + "<" + file.key;
-		for each (af::XML::Attribute attribute in file.attributes) {
+		for (af::XML::Attribute attribute : file.attributes) {
 			buffer += " " + attribute.name + "=\"" + attribute.content + "\"";
 		}
 		buffer += ">";
@@ -92,23 +88,26 @@ namespace af {
 				buffer += file.content;
 			else
 				buffer += "\n" + spacing + "\t" + file.content + "\n";
-		}
-		else {
+		} else {
 			if (!skipChilds)
 				buffer += "\n";
 		}
 		if (!skipChilds) {
-			for each (af::XML::Structure elem in file.childs) {
+			for (af::XML::Structure elem : file.childs) {
 				write(elem, 1, run + 1);
 			}
 			buffer += spacing;
 		}
 		buffer += "</" + file.key + ">\n";
-		if(!self) {
+		if (!self) {
 			af::write(this->file, buffer);
 			this->file << std::flush;
 		}
 	} //write
+
+	std::string & XML::getBuffer() {
+		return buffer;
+	}
 
 
 	  ////////////////////////////////////////////////////////////
@@ -130,11 +129,10 @@ namespace af {
 					tagList.pop_back();
 					buffer.erase(0, close + 1);
 					return true;
-				}
-				else
+				} else
 					throw(af::Exception::FoundUnexpectedEndingTag);
 			}
-			
+
 		}
 		return false;
 	}
@@ -146,12 +144,11 @@ namespace af {
 		if (end == std::string::npos || end > buffer.find_first_of(">")) {
 			//If attributes NOT included
 			end = buffer.find_first_of('>') - 1;
-			destination.key = buffer.substr(1, end);
-			tagList.push_back(destination.key);
-			buffer = buffer.erase(0, end + 2);
-			return true;
-		}
-		else {
+				destination.key = buffer.substr(1, end);
+				tagList.push_back(destination.key);
+				buffer = buffer.erase(0, end + 2);
+				return true;
+			} else {
 			//If attributes included
 			destination.key = buffer.substr(1, end - 1);
 			tagList.push_back(destination.key);
@@ -186,8 +183,7 @@ namespace af {
 				buffer = buffer.erase(0, temp + 1);
 
 			return true;
-		}
-		else {
+		} else {
 			//Attributes left
 			return false;
 		}
@@ -200,7 +196,7 @@ namespace af {
 		manage_stream(Action::r);
 		bool opendTag = false;
 		Structure current;
-		
+
 		//Check if file has to be read
 		if (!self)
 			af::read(filename, data);
@@ -211,8 +207,7 @@ namespace af {
 			try {
 				eraseSpaces(buffer, buffer);
 				skipIf();
-			}
-			catch (af::Exception) {
+			} catch (af::Exception) {
 				//empty line, read new line
 				buffer.clear();
 				continue;
@@ -221,19 +216,13 @@ namespace af {
 			if (checkForEndingTag())
 				return current;
 
-			
+
 			if (buffer.find_first_of('<') == 0) {
 				//openeningTag found
 				if (opendTag) {
 					//method already run -> prepare recursive call
-					try {
-						current.childs.push_back(this->read(true));
-					}
-					catch (af::Exception) {
-						throw;
-					}
-				}
-				else {
+					current.childs.push_back(this->read(true));
+				} else {
 					//first run
 					opendTag = true;
 					bool closingDelim = getKey(current);
@@ -253,16 +242,11 @@ namespace af {
 				//buffer is not empty -> vi stuff left ...it works!
 				unsigned int close = buffer.find("</");
 				if (close != 0) {
-					while(buffer.find_first_of('<') == 0) {
+					while (buffer.find_first_of('<') == 0) {
 						//method already run -> prepare recursive call
-						try {
-							current.childs.push_back(this->read(true));
-							if (checkForEndingTag())
-								return current;
-						}
-						catch (af::Exception) {
-							throw;
-						}
+						current.childs.push_back(this->read(true));
+						if (checkForEndingTag())
+							return current;
 					}
 					unsigned int close = buffer.find("</");
 					//content left -> get content
@@ -284,16 +268,16 @@ namespace af {
 	void XML::manage_stream(Action action) {
 		if (action != this->lastAction) {
 			switch (action) {
-			case Action::r:
-				this->close();
-				this->open(filename);
-				break;
-			case Action::w:
-				this->close();
-				this->create(filename);
-				break;
-			default:
-				break;
+				case Action::r:
+					this->close();
+					this->open(filename);
+					break;
+				case Action::w:
+					this->close();
+					this->create(filename);
+					break;
+				default:
+					break;
 			} //switch
 			lastAction = action;
 		} //if
@@ -301,7 +285,7 @@ namespace af {
 
 
 	////////////////////////////////////////////////////////////
-	auto XML::getFile() -> std::fstream&	{
+	auto XML::getFile() -> std::fstream& {
 		return file;
 	}
 
