@@ -1,7 +1,7 @@
 #include "csv.hpp"
 
 namespace af {
-	int printCsv(const std::string& file_path, const table& table) {
+	void printCsv(const std::string& file_path, const table& table) {
 		std::string buffer;
 		// Create File
 		std::fstream file;
