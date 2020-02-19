@@ -15,7 +15,7 @@ namespace af {
 
 	////////////////////////////////////////////////////////////
 	void XML::create(const std::string& path) {
-		std::ofstream f { path };
+		std::ofstream f{ path };
 		f << std::flush;
 		open(path);
 	}
@@ -110,7 +110,7 @@ namespace af {
 	}
 
 
-	  ////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////
 	void XML::skipIf() {
 		if (buffer.find("<!") == 0)
 			throw(Exception::EmptyLine);
@@ -144,11 +144,11 @@ namespace af {
 		if (end == std::string::npos || end > buffer.find_first_of(">")) {
 			//If attributes NOT included
 			end = buffer.find_first_of('>') - 1;
-				destination.key = buffer.substr(1, end);
-				tagList.push_back(destination.key);
-				buffer = buffer.erase(0, end + 2);
-				return true;
-			} else {
+			destination.key = buffer.substr(1, end);
+			tagList.push_back(destination.key);
+			buffer = buffer.erase(0, end + 2);
+			return true;
+		} else {
 			//If attributes included
 			destination.key = buffer.substr(1, end - 1);
 			tagList.push_back(destination.key);
@@ -235,6 +235,19 @@ namespace af {
 							closingDelim = checkForAttributes();
 						} //WHILE !closingTag
 					} //IF attributes
+					//drop tag, if inlined
+					try {
+						eraseSpaces(buffer, buffer);
+
+					} catch (af::Exception) {
+						//We can continue safely here, since the buffer is empty
+						continue;
+					}
+					if (buffer.find("/>") == 0) {
+						tagList.pop_back();
+						buffer.clear();
+						return current;
+					}
 				} //ELSE opendTag
 			} //IF <
 
@@ -243,14 +256,18 @@ namespace af {
 				unsigned int close = buffer.find("</");
 				if (close != 0) {
 					while (buffer.find_first_of('<') == 0) {
+						if (isCData()) {
+							current.content = cData();
+							break;
+						}
 						//method already run -> prepare recursive call
 						current.childs.push_back(this->read(true));
 						if (checkForEndingTag())
 							return current;
 					}
-					unsigned int close = buffer.find("</");
+					close = buffer.find("</");
 					//content left -> get content
-					current.content = buffer.substr(0, close);
+					current.content += buffer.substr(0, close);
 					buffer.erase(0, close);
 				}
 				if (checkForEndingTag())
@@ -263,21 +280,30 @@ namespace af {
 		throw(af::Exception::FoundUnexpectedEndOfFile);
 	} //read
 
+	bool XML::isCData() {
+		return buffer.find("<![CDATA[") == 0;
+	}
+
+	std::string XML::cData() {
+		std::string temp = buffer.substr(9, buffer.find("]]>") - 9);
+		buffer.erase(0, buffer.find("]]>") + 3);
+		return temp;
+	}
 
 	////////////////////////////////////////////////////////////
 	void XML::manage_stream(Action action) {
 		if (action != this->lastAction) {
 			switch (action) {
-				case Action::r:
-					this->close();
-					this->open(filename);
-					break;
-				case Action::w:
-					this->close();
-					this->create(filename);
-					break;
-				default:
-					break;
+			case Action::r:
+				this->close();
+				this->open(filename);
+				break;
+			case Action::w:
+				this->close();
+				this->create(filename);
+				break;
+			default:
+				break;
 			} //switch
 			lastAction = action;
 		} //if
