@@ -2,7 +2,11 @@
 It's a small library for a more comfortable access to filestreams and is mainly a helper for XML file handling.
 
 # How to use? #
-Download the latest release and unzip it. You need to build the library from source.
+Download the latest release and unzip it. Copy the following files into your Project:
+ * general.hpp
+ * general.cpp
+ * xml.hpp
+ * xml.cpp
 
 # Features
  * Parsing of XML like files
